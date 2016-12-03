@@ -1,0 +1,10 @@
+[mons]
+mon ansible_user=root
+
+[osds]
+osd-0 ansible_user=root
+osd-1 ansible_user=root
+osd-2 ansible_user=root
+
+[clients]
+mon ansible_user=root

@@ -1,0 +1,14 @@
+crush_location: false
+osd_crush_location: "'root={{ ceph_crush_root }} rack={{ ceph_crush_rack }} host={{ ansible_hostname }}'"
+
+fsid: "{{ cluster_uuid.stdout }}"
+
+#osd_auto_discovery: false
+#raw_multi_journal: false
+
+#journal_collocation: true
+#devices: ["/dev/sdd"]
+
+osd_directory: true
+osd_directories:
+  - /var/lib/ceph/osd/osd
