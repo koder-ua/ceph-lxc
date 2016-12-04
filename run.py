@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import print_function
+
 import os
 import time
 import json
@@ -74,22 +76,23 @@ def create_cloud():
         time.sleep(1)
 
     for name, ip in containers.items():
-        run("lxc exec {} -- ifdown eth0".format(name))
+        if ip is not None:
+            run("lxc exec {} -- ifdown eth0".format(name))
 
-        sed_cmd = 's/127.0.0.1 localhost/127.0.0.1 localhost {}/g'.format(name)
-        run("lxc exec {} -- sed -i -e '{}' /etc/hosts".format(name, sed_cmd))
+            sed_cmd = 's/127.0.0.1 localhost/127.0.0.1 localhost {}/g'.format(name)
+            run("lxc exec {} -- sed -i -e '{}' /etc/hosts".format(name, sed_cmd))
 
-        sed_cmd = 's/auto eth0/#auto eth0/g'
-        run("lxc exec {} -- sed -i -e '{}' /etc/network/interfaces.d/50-cloud-init.cfg".format(name, sed_cmd))
+            sed_cmd = 's/auto eth0/#auto eth0/g'
+            run("lxc exec {} -- sed -i -e '{}' /etc/network/interfaces.d/50-cloud-init.cfg".format(name, sed_cmd))
 
-        sed_cmd = 's/iface eth0 inet dhcp/#iface eth0 inet dhcp/g'
-        run("lxc exec {} -- sed -i -e '{}' /etc/network/interfaces.d/50-cloud-init.cfg".format(name, sed_cmd))
+            sed_cmd = 's/iface eth0 inet dhcp/#iface eth0 inet dhcp/g'
+            run("lxc exec {} -- sed -i -e '{}' /etc/network/interfaces.d/50-cloud-init.cfg".format(name, sed_cmd))
 
-        run("lxc exec {} -- ifconfig eth0 {} netmask {}".format(name, ip, netmask))
-        run("lxc exec {} -- ip route add default via {}".format(name, gateway))
+            run("lxc exec {} -- ifconfig eth0 {} netmask {}".format(name, ip, netmask))
+            run("lxc exec {} -- ip route add default via {}".format(name, gateway))
 
-        for nameserver in nameservers:
-            run("lxc exec {} -- sed -i '$inameserver {}' /etc/resolv.conf".format(name, nameserver))
+            for nameserver in nameservers:
+                run("lxc exec {} -- sed -i '$inameserver {}' /etc/resolv.conf".format(name, nameserver))
 
     for name in containers:
         run("lxc exec {} -- rm /var/lib/apt/lists/lock".format(name))
@@ -108,6 +111,9 @@ def create_cloud():
     for name in containers:
         run('ssh-keyscan -H "{}" >>{}'.format(name, known_hosts))
 
+try:
+    cleanup_cloud()
+except Exception as exc:
+    print(exc)
 
-cleanup_cloud()
 create_cloud()
